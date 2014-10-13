@@ -15,91 +15,107 @@
     <script src="components/cytoscape/cytoscape.js"></script>
 
     <script type="text/javascript">
-    	$(document).ready(function() {
-$('#graph').cytoscape({
-  style: cytoscape.stylesheet()
-    .selector('node')
-      .css({
-        'content': 'data(name)',
-        'text-valign': 'center',
-        'color': 'white',
-        'text-outline-width': 2,
-        'text-outline-color': '#888'
-      })
-    .selector('edge')
-      .css({
-        'target-arrow-shape': 'triangle'
-      })
-    .selector(':selected')
-      .css({
-        'background-color': 'black',
-        'line-color': 'black',
-        'target-arrow-color': 'black',
-        'source-arrow-color': 'black'
-      })
-    .selector('.faded')
-      .css({
-        'opacity': 0.25,
-        'text-opacity': 0
-      }),
+      $(document).ready(function() {
+        $.get('data/nodes.csv', function(nodesData) {
+          $.get('data/edges.csv', function(edgesData) {
+            var nodes = [];
+            var edges = [];
+
+            nodesData = nodesData.split(/\r\n|\r|\n/g);
+            for (var i = 1; i < nodesData.length; i++) {
+              var line = nodesData[i];
+              var columns = line.split(",");
+              var node = { data: { id: columns[0], name: columns[1] } };
+              nodes.push(node);
+            }
+
+            edgesData = edgesData.split(/\r\n|\r|\n/g);
+            for (var i = 1; i < edgesData.length; i++) {
+              var line = edgesData[i];
+              var columns = line.split(",");
+              var edge = { data: { source: columns[0], target: columns[1], label: columns[4] } };
+              edges.push(edge);
+            }
+
+
+          $('#graph').cytoscape({
+            style: cytoscape.stylesheet()
+                .selector('node')
+                    .css({
+                      'content': 'data(name)',
+                      'text-valign': 'center',
+                      'color': 'white',
+                      'text-outline-width': 2,
+                      'text-outline-color': '#888',
+                      'background-color': '#6FB1FC',
+                      'font-size': 10
+                    })
+                .selector('edge')
+                    .css({
+                      'target-arrow-shape': 'triangle',
+                      'line-color': '#AAAAAA'
+                    })
+                .selector(':selected')
+                    .css({
+                      'background-color': 'black',
+                      'line-color': 'black',
+                      'target-arrow-color': 'black',
+                      'source-arrow-color': 'black'
+                    })
+                .selector('.faded')
+                    .css({
+                      'opacity': 0.1,
+                      'text-opacity': 0
+                    }),
   
-  elements: {
-    nodes: [
-      { data: { id: 'j', name: 'Jerry' } },
-      { data: { id: 'e', name: 'Elaine' } },
-      { data: { id: 'k', name: 'Kramer' } },
-      { data: { id: 'g', name: 'George' } }
-    ],
-    edges: [
-      { data: { source: 'j', target: 'e' } },
-      { data: { source: 'j', target: 'k' } },
-      { data: { source: 'j', target: 'g' } },
-      { data: { source: 'e', target: 'j' } },
-      { data: { source: 'e', target: 'k' } },
-      { data: { source: 'k', target: 'j' } },
-      { data: { source: 'k', target: 'e' } },
-      { data: { source: 'k', target: 'g' } },
-      { data: { source: 'g', target: 'j' } }
-    ]
-  },
+                elements: {
+                  nodes: nodes,
+                  edges: edges
+                },
   
-  layout: {
-    name: 'random',
-    padding: 10
-  },
+                layout: {
+                  name: 'circle',
+                  padding: 10
+                },
   
-  // on graph initial layout done (could be async depending on layout...)
-  ready: function(){
-    window.cy = this;
-    
-    // giddy up...
-    
-    cy.elements().unselectify();
-    
-    cy.on('tap', 'node', function(e){
-      var node = e.cyTarget; 
-      var neighborhood = node.neighborhood().add(node);
-      
-      cy.elements().addClass('faded');
-      neighborhood.removeClass('faded');
-    });
-    
-    cy.on('tap', function(e){
-      if( e.cyTarget === cy ){
-        cy.elements().removeClass('faded');
-      }
-    });
-  }
-});
-    	});
+                ready : function() {
+                  window.cy = this;
+                  
+                  // giddy up...
+                  
+                  cy.elements().unselectify();
+                  
+                  cy.on('tap', 'node', function(e){
+                    var node = e.cyTarget; 
+                    var neighborhood = node.neighborhood().add(node);
+                    
+                    cy.elements().addClass('faded');
+                    neighborhood.removeClass('faded');
+                  });
+                  
+                  cy.on('tap', function(e){
+                    if( e.cyTarget === cy ){
+                      cy.elements().removeClass('faded');
+                    }
+                  });
+                }
+          });
+          }, 'html');
+        }, 'html');
+      });
     </script>
   </head>
   <body>
     <div class="container-fluid">
-	    <div class="row">
-    		<div id="graph" class="col-md-12 col-sm-12 col-xs-12">
-    		</div>
-    	</div>
+      <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12 text-center">
+          <h3>Social sphere</h3>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-10 col-md-1-offset col-sm-10 col-sm-1-offset col-xs-10 col-xs-1-offset" id="graph" style="border: solid 1px #CCCCCC">
+        </div>
+      </div>
     </div>
   </body>
 </html>
